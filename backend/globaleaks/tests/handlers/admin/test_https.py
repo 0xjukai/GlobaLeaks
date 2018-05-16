@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from requests.exceptions import ConnectionError
-
 from OpenSSL import crypto, SSL
 from globaleaks.handlers.admin import https
 from globaleaks.models.config import ConfigFactory
@@ -10,6 +8,7 @@ from globaleaks.state import State
 from globaleaks.tests import helpers
 from globaleaks.tests.utils import test_tls
 from globaleaks.utils.letsencrypt import ChallTok
+from six.moves import urllib
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 
@@ -213,7 +212,6 @@ class TestAcmeHandler(helpers.TestHandler):
     def test_put(self):
         valid_setup = test_tls.get_valid_setup()
         yield https.AcmeAccntKeyRes.create_file(1)
-        yield https.AcmeAccntKeyRes.save_accnt_uri(1, 'http://localhost:9999')
         yield https.PrivKeyFileRes.create_file(1, valid_setup['key'])
         hostname = 'gl.dl.localhost.com'
         State.tenant_cache[1].hostname = hostname
@@ -232,7 +230,7 @@ class TestAcmeHandler(helpers.TestHandler):
         }
 
         handler = self.request(body, role='admin')
-        yield self.assertFailure(handler.put(), ConnectionError)
+        yield self.assertFailure(handler.put(), urllib.error.URLError)
 
 
 class TestAcmeChallengeHandler(helpers.TestHandler):
